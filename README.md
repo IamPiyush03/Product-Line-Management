@@ -239,9 +239,6 @@ The collection uses environment variables. Create two environments in Postman:
   - `GET {{baseUrl}}/analytics/overview`
   - Headers: `Authorization: Bearer {{token}}`
 
-````
-
-
 ## Database Schema
 
 ### User Model
