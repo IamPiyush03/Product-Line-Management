@@ -140,7 +140,7 @@ I'll help you add the Postman collection section to your README.md. Here's how t
 
 ### Postman Collection
 You can import the complete API collection into Postman using this link:
-[Download Postman Collection](./postman/Production-Line-API.postman_collection.json)
+[Download Postman Collection](./postman/Production_Line_API.postman_collection.json)
 
 To use the collection:
 1. Download the JSON file
