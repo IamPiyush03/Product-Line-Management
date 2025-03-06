@@ -139,8 +139,8 @@ npm run dev
 I'll help you add the Postman collection section to your README.md. Here's how to add it:
 
 ### Postman Collection
-You can import the complete API collection into Postman using this link:
-[Download Postman Collection](./postman/Production-Line-API.postman_collection.json)
+You can import the complete API collection into Postman using this path:
+[postman/Production-Line-API.postman_collection.json](./postman/Production-Line-API.postman_collection.json)
 
 To use the collection:
 1. Download the JSON file
