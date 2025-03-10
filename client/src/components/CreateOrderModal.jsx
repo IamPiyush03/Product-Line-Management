@@ -51,17 +51,27 @@ const CreateOrderModal = ({ isOpen, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-
-    // Filter out empty material selections
-    const materialsUsed = selectedMaterials.filter((material) => material.materialId && material.quantity)
-
+  
     try {
+      // Validate priority
+      if (!["High", "Medium", "Low"].includes(formData.priority)) {
+        throw new Error("Invalid priority value")
+      }
+  
+      // Filter out empty material selections
+      const materialsUsed = selectedMaterials.filter((material) => 
+        material.materialId && material.quantity
+      )
+  
       const orderData = {
         ...formData,
         quantity: Number.parseInt(formData.quantity),
         materialsUsed,
       }
-
+  
+      // Log the data being sent
+      console.log("Submitting order data:", orderData)
+  
       await dispatch(createOrder(orderData)).unwrap()
       onClose()
     } catch (error) {
