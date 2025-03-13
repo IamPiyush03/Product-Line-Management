@@ -13,19 +13,27 @@ export const getOrders = createAsyncThunk("orders/getAll", async (filters, { rej
 })
 
 // Create new order
-export const createOrder = createAsyncThunk("orders/create", async (orderData, { rejectWithValue }) => {
-  try {
-    const response = await orderService.createOrder(orderData)
-    return response.data
-  } catch (error) {
-    // Extract the validation error message from the errors array
-    const errorMessage = error.response?.data?.errors?.[0]?.msg || 
-                        error.response?.data?.message ||
-                        'Failed to create order'
-    console.log('Server validation errors:', error.response?.data?.errors)
-    return rejectWithValue(errorMessage)
+export const createOrder = createAsyncThunk(
+  "orders/create",
+  async (orderData, { rejectWithValue }) => {
+    try {
+      const response = await orderService.createOrder(orderData)
+      return response.data
+    } catch (error) {
+      // Log the complete error object
+      console.log('Complete error:', error)
+      console.log('Error response:', error.response)
+      console.log('Error data:', error.response?.data)
+      
+      return rejectWithValue(
+        error.response?.data?.message || 
+        error.response?.data?.error || 
+        error.message || 
+        'Failed to create order'
+      )
+    }
   }
-})
+)
 
 // Update order status
 export const updateOrderStatus = createAsyncThunk(

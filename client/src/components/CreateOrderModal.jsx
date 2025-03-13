@@ -56,31 +56,36 @@ const CreateOrderModal = ({ isOpen, onClose }) => {
       const validMaterials = selectedMaterials
         .filter(material => material.materialId && material.quantity)
         .map(material => ({
-          materialId: material.materialId,
+          materialId: material.materialId.trim(),
           quantity: Number(material.quantity)
         }))
 
-      // Explicitly format priority as uppercase to match enum
+      // Ensure all strings are trimmed and numbers are properly typed
       const orderData = {
         productName: formData.productName.trim(),
         quantity: Number(formData.quantity),
-        priority: formData.priority,  // Keep original case
-        workstationId: formData.workstationId,
+        priority: formData.priority.trim(), // Ensure no whitespace
+        workstationId: formData.workstationId.trim(),
         startDate: formData.startDate,
         endDate: formData.endDate,
         materialsUsed: validMaterials,
-        status: "Planned"  // Match the case in the schema
-    }
+        status: "Planned"
+      }
 
-      console.log("Submitting order data:", JSON.stringify(orderData, null, 2))
-      
-      const result = await dispatch(createOrder(orderData)).unwrap()
+      // Add debug logging
+      console.log("Priority value:", orderData.priority)
+      console.log("Priority length:", orderData.priority.length)
+      console.log("Priority charCodes:", [...orderData.priority].map(c => c.charCodeAt(0)))
+
+      await dispatch(createOrder(orderData)).unwrap()
       onClose()
     } catch (error) {
-      console.error("Error creating order:", {
+      // Enhanced error logging
+      console.error("Error details:", {
         error,
-        validationErrors: error.response?.data?.errors,
-        message: error.message
+        response: error.response,
+        data: error.response?.data,
+        errors: error.response?.data?.errors
       })
     } finally {
       setIsSubmitting(false)
