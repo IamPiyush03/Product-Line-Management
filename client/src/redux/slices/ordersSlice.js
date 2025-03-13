@@ -15,14 +15,15 @@ export const getOrders = createAsyncThunk("orders/getAll", async (filters, { rej
 // Create new order
 export const createOrder = createAsyncThunk("orders/create", async (orderData, { rejectWithValue }) => {
   try {
-    return await orderService.createOrder(orderData)
+    const response = await orderService.createOrder(orderData)
+    return response.data
   } catch (error) {
-    const message =
-      error.response?.data?.message ||
-      error.response?.data?.errors?.[0]?.msg ||
-      error.message ||
-      "Failed to create order"
-    return rejectWithValue(message)
+    // Extract the validation error message from the errors array
+    const errorMessage = error.response?.data?.errors?.[0]?.msg || 
+                        error.response?.data?.message ||
+                        'Failed to create order'
+    console.log('Server validation errors:', error.response?.data?.errors)
+    return rejectWithValue(errorMessage)
   }
 })
 

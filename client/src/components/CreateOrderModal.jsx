@@ -15,12 +15,12 @@ const CreateOrderModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     productName: "",
     quantity: "",
-    priority: "Medium",
+    priority: "Medium",  // Correct case to match schema
     workstationId: "",
     startDate: new Date().toISOString().split("T")[0],
     endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-    materialsUsed: [],
-  })
+    materialsUsed: []
+})
 
   const [selectedMaterials, setSelectedMaterials] = useState([{ materialId: "", quantity: "" }])
 
@@ -53,33 +53,39 @@ const CreateOrderModal = ({ isOpen, onClose }) => {
     setIsSubmitting(true)
   
     try {
-      // Validate priority
-      if (!["High", "Medium", "Low"].includes(formData.priority)) {
-        throw new Error("Invalid priority value")
-      }
-  
-      // Filter out empty material selections
-      const materialsUsed = selectedMaterials.filter((material) => 
-        material.materialId && material.quantity
-      )
-  
+      const validMaterials = selectedMaterials
+        .filter(material => material.materialId && material.quantity)
+        .map(material => ({
+          materialId: material.materialId,
+          quantity: Number(material.quantity)
+        }))
+
+      // Explicitly format priority as uppercase to match enum
       const orderData = {
-        ...formData,
-        quantity: Number.parseInt(formData.quantity),
-        materialsUsed,
-      }
-  
-      // Log the data being sent
-      console.log("Submitting order data:", orderData)
-  
-      await dispatch(createOrder(orderData)).unwrap()
+        productName: formData.productName.trim(),
+        quantity: Number(formData.quantity),
+        priority: formData.priority,  // Keep original case
+        workstationId: formData.workstationId,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        materialsUsed: validMaterials,
+        status: "Planned"  // Match the case in the schema
+    }
+
+      console.log("Submitting order data:", JSON.stringify(orderData, null, 2))
+      
+      const result = await dispatch(createOrder(orderData)).unwrap()
       onClose()
     } catch (error) {
-      console.error("Failed to create order:", error)
+      console.error("Error creating order:", {
+        error,
+        validationErrors: error.response?.data?.errors,
+        message: error.message
+      })
     } finally {
       setIsSubmitting(false)
     }
-  }
+}
 
   if (!isOpen) return null
 
@@ -140,17 +146,16 @@ const CreateOrderModal = ({ isOpen, onClose }) => {
 
                   {/* Priority */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Priority</label>
-                    <select
-                      name="priority"
-                      value={formData.priority}
-                      onChange={handleChange}
-                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                    >
-                      <option value="High">High</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Low">Low</option>
-                    </select>
+                  <select
+  name="priority"
+  value={formData.priority}
+  onChange={handleChange}
+  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+>
+  <option value="High">High</option>
+  <option value="Medium">Medium</option>
+  <option value="Low">Low</option>
+</select>
                   </div>
 
                   {/* Workstation */}

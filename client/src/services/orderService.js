@@ -18,8 +18,18 @@ const getOrders = async (filters = {}) => {
 
 // Create new order
 const createOrder = async (orderData) => {
-  const response = await api.post("/orders", orderData)
-  return response.data
+  try {
+    console.log('Sending order data:', JSON.stringify(orderData, null, 2))
+    const response = await api.post("/orders", orderData)
+    return response.data
+  } catch (error) {
+    console.error('API Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      errors: error.response?.data?.errors
+    })
+    throw error
+  }
 }
 
 // Update order status
