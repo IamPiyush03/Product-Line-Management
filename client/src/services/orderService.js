@@ -19,23 +19,23 @@ const getOrders = async (filters = {}) => {
 // Create new order
 const createOrder = async (orderData) => {
   try {
+    // Log the exact data being sent
+    console.log('Sending data:', JSON.stringify(orderData, null, 2));
+    
     const response = await api.post("/orders", {
       ...orderData,
-      priority: orderData.priority.trim(), // Ensure clean priority string
-      quantity: Number(orderData.quantity),
-      materialsUsed: orderData.materialsUsed.map(m => ({
-        ...m,
-        quantity: Number(m.quantity)
-      }))
-    })
-    return response.data
+      priority: String(orderData.priority).trim() // Ensure clean string
+    });
+    return response.data;
   } catch (error) {
-    console.log('API Error Response:', error.response)
-    console.log('API Error Data:', error.response?.data)
-    throw error
+    console.log('API Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      errors: error.response?.data?.errors
+    });
+    throw error;
   }
-}
-
+};
 // Update order status
 const updateOrderStatus = async (id, status) => {
   const response = await api.put(`/orders/${id}/status`, { status })

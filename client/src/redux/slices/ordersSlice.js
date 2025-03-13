@@ -17,24 +17,22 @@ export const createOrder = createAsyncThunk(
   "orders/create",
   async (orderData, { rejectWithValue }) => {
     try {
-      const response = await orderService.createOrder(orderData)
-      return response.data
+      const response = await orderService.createOrder(orderData);
+      return response.data;
     } catch (error) {
-      // Log the complete error object
-      console.log('Complete error:', error)
-      console.log('Error response:', error.response)
-      console.log('Error data:', error.response?.data)
+      console.log('Error response data:', error.response?.data);
+      console.log('Error response errors:', error.response?.data?.errors);
       
-      return rejectWithValue(
-        error.response?.data?.message || 
-        error.response?.data?.error || 
-        error.message || 
-        'Failed to create order'
-      )
+      const errorMessage = 
+        error.response?.data?.message ||
+        error.response?.data?.errors?.[0]?.msg ||
+        error.message ||
+        'Failed to create order';
+        
+      return rejectWithValue(errorMessage);
     }
   }
-)
-
+);
 // Update order status
 export const updateOrderStatus = createAsyncThunk(
   "orders/updateStatus",

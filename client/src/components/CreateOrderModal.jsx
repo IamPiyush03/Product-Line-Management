@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from "react-redux"
 import { createOrder } from "../redux/slices/ordersSlice"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
+import { toast } from 'react-toastify'; // Add this import at the top
+
 
 const CreateOrderModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch()
@@ -49,48 +51,39 @@ const CreateOrderModal = ({ isOpen, onClose }) => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
   
     try {
       const validMaterials = selectedMaterials
         .filter(material => material.materialId && material.quantity)
         .map(material => ({
-          materialId: material.materialId.trim(),
+          materialId: material.materialId,
           quantity: Number(material.quantity)
-        }))
+        }));
 
-      // Ensure all strings are trimmed and numbers are properly typed
       const orderData = {
         productName: formData.productName.trim(),
         quantity: Number(formData.quantity),
-        priority: formData.priority.trim(), // Ensure no whitespace
-        workstationId: formData.workstationId.trim(),
+        priority: formData.priority,  // Make sure this is exactly "High", "Medium", or "Low"
+        workstationId: formData.workstationId,
         startDate: formData.startDate,
         endDate: formData.endDate,
         materialsUsed: validMaterials,
         status: "Planned"
-      }
+      };
 
-      // Add debug logging
-      console.log("Priority value:", orderData.priority)
-      console.log("Priority length:", orderData.priority.length)
-      console.log("Priority charCodes:", [...orderData.priority].map(c => c.charCodeAt(0)))
-
-      await dispatch(createOrder(orderData)).unwrap()
-      onClose()
+      console.log('Priority value before submission:', orderData.priority);
+      const result = await dispatch(createOrder(orderData)).unwrap();
+      onClose();
     } catch (error) {
-      // Enhanced error logging
-      console.error("Error details:", {
-        error,
-        response: error.response,
-        data: error.response?.data,
-        errors: error.response?.data?.errors
-      })
+      console.error('Complete error object:', error);
+      // Show error to user
+      toast.error(error.message || 'Failed to create order');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-}
+};
 
   if (!isOpen) return null
 

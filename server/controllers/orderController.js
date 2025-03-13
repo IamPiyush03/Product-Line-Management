@@ -32,7 +32,11 @@ const getOrders = async (req, res) => {
 const createOrder = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        console.log('Validation errors:', errors.array());
+        return res.status(400).json({
+            message: errors.array()[0].msg,
+            errors: errors.array()
+        });
     }
     try {
         const order = await ProductionOrder.create({
@@ -41,6 +45,12 @@ const createOrder = async (req, res) => {
         });
         res.status(201).json(order);
     } catch (error) {
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({
+                message: Object.values(error.errors)[0].message,
+                errors: Object.values(error.errors)
+            });
+        }
         res.status(500).json({ message: error.message });
     }
 };

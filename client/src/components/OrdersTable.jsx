@@ -49,26 +49,34 @@ const OrdersTable = ({ isManager = false }) => {
 
   // Calculate if an order is overdue
   const isOverdue = (endDate) => {
+    if (!endDate) return false
     return new Date(endDate) < new Date()
   }
 
-  // Get sorted and paginated orders
+  // Get sorted and paginated orders with null checks
   const getSortedOrders = () => {
+    if (!orders || orders.length === 0) return []
+    
     const startIndex = (pagination.page - 1) * pagination.limit
     const endIndex = startIndex + pagination.limit
 
-    // Sort orders
+    // Sort orders with null checks
     const sortedOrders = [...orders].sort((a, b) => {
+      if (!a || !b) return 0
+      
       if (sort.field === "createdAt") {
         return sort.direction === "asc"
-          ? new Date(a.createdAt) - new Date(b.createdAt)
-          : new Date(b.createdAt) - new Date(a.createdAt)
+          ? new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
+          : new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
       }
 
+      const aValue = a[sort.field] || ''
+      const bValue = b[sort.field] || ''
+
       if (sort.direction === "asc") {
-        return a[sort.field] > b[sort.field] ? 1 : -1
+        return aValue > bValue ? 1 : -1
       } else {
-        return a[sort.field] < b[sort.field] ? 1 : -1
+        return aValue < bValue ? 1 : -1
       }
     })
 
@@ -221,29 +229,37 @@ const OrdersTable = ({ isManager = false }) => {
             ) : (
               getSortedOrders().map((order) => (
                 <tr
-                  key={order._id}
-                  className={isOverdue(order.endDate) && order.status !== "Completed" ? "bg-red-50" : ""}
+                  key={order?._id}
+                  className={order?.endDate && isOverdue(order.endDate) && order.status !== "Completed" ? "bg-red-50" : ""}
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {order.orderId || order._id.substring(0, 8)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.productName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.quantity}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <PriorityBadge priority={order.priority} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={order.status} />
+                    {order?.orderId || order?._id?.substring(0, 8) || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(order.startDate).toLocaleDateString()}
+                    {order?.productName || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(order.endDate).toLocaleDateString()}
+                    {order?.quantity || 0}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <PriorityBadge priority={order?.priority} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <StatusBadge status={order?.status} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {order?.startDate ? new Date(order.startDate).toLocaleDateString() : 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {order?.endDate ? new Date(order.endDate).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => openUpdateModal(order)}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => order && openUpdateModal(order)}
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
 
@@ -251,7 +267,7 @@ const OrdersTable = ({ isManager = false }) => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteOrder(order._id)}
+                          onClick={() => order?._id && handleDeleteOrder(order._id)}
                           className="text-red-600 hover:text-red-800"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -279,7 +295,7 @@ const OrdersTable = ({ isManager = false }) => {
           <Button
             variant="outline"
             onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={pagination.page * pagination.limit >= pagination.total}
+            disabled={pagination.page * pagination.limit >= (pagination.total || 0)}
           >
             Next
           </Button>
@@ -287,9 +303,15 @@ const OrdersTable = ({ isManager = false }) => {
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700">
-              Showing <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> to{" "}
-              <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of{" "}
-              <span className="font-medium">{pagination.total}</span> results
+              Showing{" "}
+              <span className="font-medium">
+                {orders.length ? (pagination.page - 1) * pagination.limit + 1 : 0}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium">
+                {Math.min(pagination.page * pagination.limit, pagination.total || 0)}
+              </span>{" "}
+              of <span className="font-medium">{pagination.total || 0}</span> results
             </p>
           </div>
           <div>
@@ -302,12 +324,11 @@ const OrdersTable = ({ isManager = false }) => {
               >
                 Previous
               </Button>
-              {/* Page numbers would go here */}
               <Button
                 variant="outline"
                 className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                 onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page * pagination.limit >= pagination.total}
+                disabled={pagination.page * pagination.limit >= (pagination.total || 0)}
               >
                 Next
               </Button>
@@ -329,4 +350,3 @@ const OrdersTable = ({ isManager = false }) => {
 }
 
 export default OrdersTable
-
